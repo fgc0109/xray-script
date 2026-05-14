@@ -80,38 +80,38 @@ SNI 配置中，CDN 的分享链接 Alpn 默认为 H2，如有 H3 需求，请�
 * 获取
 
   ```sh
-  wget --no-check-certificate -O ${HOME}/Xray-script.sh https://raw.githubusercontent.com/zxcvos/Xray-script/main/install.sh
+  wget --no-check-certificate -O ${HOME}/xray-script.sh https://raw.githubusercontent.com/fgc0109/xray-script/main/install.sh
   ```
 
 * 使用
   * 启动界面
 
     ```sh
-    bash ${HOME}/Xray-script.sh
+    bash ${HOME}/xray-script.sh
     ```
 
   * 快速安装 Vision
 
     ```sh
-    bash ${HOME}/Xray-script.sh --vision
+    bash ${HOME}/xray-script.sh --vision
     ```
 
   * 快速安装 XHTTP
 
     ```sh
-    bash ${HOME}/Xray-script.sh --xhttp
+    bash ${HOME}/xray-script.sh --xhttp
     ```
 
   * 快速安装 Fallback
 
     ```sh
-    bash ${HOME}/Xray-script.sh --fallback
+    bash ${HOME}/xray-script.sh --fallback
     ```
 
 * 快速启动(界面)
 
   ```sh
-  wget --no-check-certificate -O ${HOME}/Xray-script.sh https://raw.githubusercontent.com/zxcvos/Xray-script/main/install.sh && bash ${HOME}/Xray-script.sh
+  wget --no-check-certificate -O ${HOME}/xray-script.sh https://raw.githubusercontent.com/fgc0109/xray-script/main/install.sh && bash ${HOME}/xray-script.sh
   ```
 
 ## 脚本界面
@@ -124,7 +124,7 @@ SNI 配置中，CDN 的分享链接 Alpn 默认为 H2，如有 H3 需求，请�
   / . \  | |  | |    | |       | |    | |     
  /_/ \_\ |_|  |_|    |_|       |_|    |_|     
 
-Copyright (C) zxcvos | https://github.com/zxcvos/Xray-script
+Copyright (C) zxcvos | https://github.com/zxcvos/xray-script
 
 -------------------------------------------
 Xray       : v25.7.26
@@ -132,7 +132,7 @@ CONFIG     : VLESS-Vision-REALITY
 WARP Proxy : 已启动
 -------------------------------------------
 
---------------- Xray-script ---------------
+--------------- xray-script ---------------
  Version      : v2025-07-25
  Description  : Xray 管理脚本
 ----------------- 装载管理 ----------------
@@ -203,7 +203,7 @@ SNI 配置适合安装一次后长期使用，不适合反复重置系统安装�
 
 ## 安装位置
 
-**Xray-script:** `/usr/local/xray-script`
+**xray-script:** `/usr/local/xray-script`
 
 **Nginx:** `/usr/local/nginx`
 
@@ -278,7 +278,7 @@ SNI 配置适合安装一次后长期使用，不适合反复重置系统安装�
 
 [V2Ray 路由规则文件加强版][v2ray-rules-dat]
 
-[kirin10000/Xray-script][kirin10000/Xray-script]
+[kirin10000/xray-script][kirin10000/xray-script]
 
 [Cloudreve][cloudreve]
 
@@ -292,5 +292,5 @@ SNI 配置适合安装一次后长期使用，不适合反复重置系统安装�
 [haoel]: https://github.com/haoel/haoel.github.io#943-docker-%E4%BB%A3%E7%90%86 (使用 Docker 快速部署 Cloudflare WARP Proxy)
 [e7h4n]: https://github.com/e7h4n/cloudflare-warp (cloudflare-warp 镜像)
 [v2ray-rules-dat]: https://github.com/Loyalsoldier/v2ray-rules-dat (V2Ray 路由规则文件加强版)
-[kirin10000/Xray-script]: https://github.com/kirin10000/Xray-script (kirin10000/Xray-script)
+[kirin10000/xray-script]: https://github.com/kirin10000/xray-script (kirin10000/xray-script)
 [cloudreve]: https://github.com/cloudreve/cloudreve (cloudreve)
