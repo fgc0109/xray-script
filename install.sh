@@ -432,10 +432,10 @@ function check_xray_script_version() {
 
     # 如果本地版本为空（比如使用了兜底的 JSON），直接静默修复版本号，防止无限死循环更新
     if [[ -z "${local_version}" && -n "${remote_version}" ]]; then
+        local_version="${remote_version}"
         local new_config="$(jq --arg version "${remote_version}" '.version = $version' "${SCRIPT_CONFIG_PATH}" 2>/dev/null)"
         if [[ -n "${new_config}" ]]; then
             echo "${new_config}" >"${SCRIPT_CONFIG_PATH}"
-            local_version="${remote_version}"
         fi
     fi
 
@@ -567,21 +567,21 @@ function main() {
     done
 
     # 从脚本配置文件中读取已记录的安装路径
-    local script_path="$(jq -r '.path' "${SCRIPT_CONFIG_PATH}")"
+    local script_path="$(jq -r '.path' "${SCRIPT_CONFIG_PATH}" 2>/dev/null)"
     # 如果配置文件中没有记录路径，且命令行也未指定，则使用默认路径
     if [[ -z "${script_path}" && -z "${PROJECT_ROOT}" ]]; then
         PROJECT_ROOT='/usr/local/xray-script' # 设置默认项目根目录
         # 将默认路径更新到脚本配置文件中
-        SCRIPT_CONFIG="$(jq --arg path "${PROJECT_ROOT}" '.path = $path' "${SCRIPT_CONFIG_PATH}")"
-        echo "${SCRIPT_CONFIG}" >"${SCRIPT_CONFIG_PATH}" && sleep 2
+        local tmp_config="$(jq --arg path "${PROJECT_ROOT}" '.path = $path' "${SCRIPT_CONFIG_PATH}" 2>/dev/null)"
+        [[ -n "${tmp_config}" ]] && echo "${tmp_config}" >"${SCRIPT_CONFIG_PATH}" && sleep 1
     # 如果配置文件中已有记录的路径，则使用该路径
     elif [[ -n "${script_path}" ]]; then
         PROJECT_ROOT="${script_path}"
     # 如果配置文件中没有路径，但命令行指定了路径，则使用命令行指定的路径并更新配置文件
     elif [[ -n "${PROJECT_ROOT}" ]]; then
         # 将命令行指定的路径更新到脚本配置文件中
-        SCRIPT_CONFIG="$(jq --arg path "${PROJECT_ROOT}" '.path = $path' "${SCRIPT_CONFIG_PATH}")"
-        echo "${SCRIPT_CONFIG}" >"${SCRIPT_CONFIG_PATH}" && sleep 2
+        local tmp_config="$(jq --arg path "${PROJECT_ROOT}" '.path = $path' "${SCRIPT_CONFIG_PATH}" 2>/dev/null)"
+        [[ -n "${tmp_config}" ]] && echo "${tmp_config}" >"${SCRIPT_CONFIG_PATH}" && sleep 1
     fi
 
     # 设置各个子目录的路径
@@ -601,7 +601,7 @@ function main() {
     fi
 
     # 检查配置文件中的语言设置
-    local lang="$(jq -r '.language' "${SCRIPT_CONFIG_PATH}")"
+    local lang="$(jq -r '.language' "${SCRIPT_CONFIG_PATH}" 2>/dev/null)"
     if [[ -z "${lang}" && -z "${LANG_PARAM}" ]]; then
         # 如果语言未设置且未通过命令行指定，则运行菜单脚本选择语言
         bash "${CORE_DIR}/menu.sh" '--language'
@@ -610,12 +610,12 @@ function main() {
         *) LANG_PARAM="zh" ;; # 默认中文
         esac
         # 更新配置文件中的语言设置
-        SCRIPT_CONFIG="$(jq --arg language "${LANG_PARAM}" '.language = $language' "${SCRIPT_CONFIG_PATH}")"
-        echo "${SCRIPT_CONFIG}" >"${SCRIPT_CONFIG_PATH}" && sleep 2
+        local tmp_config="$(jq --arg language "${LANG_PARAM}" '.language = $language' "${SCRIPT_CONFIG_PATH}" 2>/dev/null)"
+        [[ -n "${tmp_config}" ]] && echo "${tmp_config}" >"${SCRIPT_CONFIG_PATH}" && sleep 1
     elif [[ "${LANG_PARAM}" =~ ^--lang= ]]; then
         # 如果通过命令行指定了语言，则更新配置文件
-        SCRIPT_CONFIG="$(jq --arg language "${LANG_PARAM#*=}" '.language = $language' "${SCRIPT_CONFIG_PATH}")"
-        echo "${SCRIPT_CONFIG}" >"${SCRIPT_CONFIG_PATH}" && sleep 2
+        local tmp_config="$(jq --arg language "${LANG_PARAM#*=}" '.language = $language' "${SCRIPT_CONFIG_PATH}" 2>/dev/null)"
+        [[ -n "${tmp_config}" ]] && echo "${tmp_config}" >"${SCRIPT_CONFIG_PATH}" && sleep 1
     fi
 
     # 启动主脚本，并传递快速安装选项
