@@ -2,8 +2,8 @@
 # =============================================================================
 # 注释: 通过 Qwen3-Coder 生成。
 # 脚本名称: install.sh
-# 脚本仓库: https://github.com/zxcvos/Xray-script
-# 功能描述: Xray-script 项目的安装引导脚本。
+# 脚本仓库: https://github.com/zxcvos/xray-script
+# 功能描述: xray-script 项目的安装引导脚本。
 #           负责检查和安装系统依赖、下载项目文件、处理命令行参数、
 #           初始化配置、设置语言以及启动主菜单。
 # 作者: zxcvos
@@ -396,7 +396,7 @@ function download_github_files() {
 
 # =============================================================================
 # 函数名称: download_xray_script_files
-# 功能描述: 下载 Xray-script 项目的全部文件。
+# 功能描述: 下载 xray-script 项目的全部文件。
 # 参数:
 #   $1: 本地目标根目录
 # 返回值: 无 (调用 download_github_files 下载项目)
@@ -412,14 +412,14 @@ function download_xray_script_files() {
 
 # =============================================================================
 # 函数名称: check_xray_script_version
-# 功能描述: 检查本地安装的 Xray-script 版本与 GitHub 上的最新版本是否一致。
+# 功能描述: 检查本地安装的 xray-script 版本与 GitHub 上的最新版本是否一致。
 #           如果不一致，则提示用户。
 # 参数: 无 (直接使用全局变量 PROJECT_ROOT)
 # 返回值: 无 (打印版本检查信息到标准输出)
 # =============================================================================
 function check_xray_script_version() {
     # 定义 GitHub API URL 和本地版本文件路径
-    local script_config_github_url="https://raw.githubusercontent.com/zxcvos/Xray-script/main/config.json"
+    local script_config_github_url="https://raw.githubusercontent.com/zxcvos/xray-script/main/config.json"
     local is_update='n' # 初始化更新标志为 'n' (不更新)
 
     # 读取本地版本号
@@ -520,7 +520,7 @@ function main() {
         mkdir -p "${SCRIPT_CONFIG_DIR}"
     fi
     if [[ ! -f "${SCRIPT_CONFIG_PATH}" ]]; then
-        wget -O "${SCRIPT_CONFIG_PATH}" https://raw.githubusercontent.com/zxcvos/Xray-script/main/config.json
+        wget -O "${SCRIPT_CONFIG_PATH}" https://raw.githubusercontent.com/zxcvos/xray-script/main/config.json
     fi
 
     # 处理命令行参数中的快速安装和自定义目录选项

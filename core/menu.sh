@@ -2,12 +2,12 @@
 #
 # Copyright (C) 2025 zxcvos
 #
-# Xray-script:
-#   https://github.com/zxcvos/Xray-script
+# xray-script:
+#   https://github.com/zxcvos/xray-script
 # =============================================================================
 # 注释: 通过 Qwen3-Coder 生成。
 # 脚本名称: menu.sh
-# 功能描述: 提供交互式菜单界面，用于 Xray-script 项目的主控制台。
+# 功能描述: 提供交互式菜单界面，用于 xray-script 项目的主控制台。
 #           显示各种配置选项、状态信息和操作菜单，支持多语言。
 # 作者: zxcvos
 # 时间: 2025-07-25
@@ -111,7 +111,7 @@ function menu_index() {
     local version=$(jq -r '.version' "${SCRIPT_CONFIG_PATH}")
 
     # 打印主菜单标题和版本信息
-    echo -e "--------------- Xray-script ------------------"
+    echo -e "--------------- xray-script ------------------"
     echo -e "Version      : ${GREEN}${version}${NC}"
     # 从 i18n 数据中读取描述信息
     echo -e "Description  : $(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.index.description")"

@@ -81,38 +81,38 @@ In SNI configuration, CDN share links use H2 as default ALPN. If you need H3, mo
 * Download
 
   ```sh
-  wget --no-check-certificate -O ${HOME}/Xray-script.sh https://raw.githubusercontent.com/zxcvos/Xray-script/main/install.sh
+  wget --no-check-certificate -O ${HOME}/xray-script.sh https://raw.githubusercontent.com/zxcvos/xray-script/main/install.sh
   ```
 
 * Usage
   * Launch UI
 
     ```sh
-    bash ${HOME}/Xray-script.sh
+    bash ${HOME}/xray-script.sh
     ```
 
   * Quick install Vision
 
     ```sh
-    bash ${HOME}/Xray-script.sh --vision
+    bash ${HOME}/xray-script.sh --vision
     ```
 
   * Quick install XHTTP
 
     ```sh
-    bash ${HOME}/Xray-script.sh --xhttp
+    bash ${HOME}/xray-script.sh --xhttp
     ```
 
   * Quick install Fallback
 
     ```sh
-    bash ${HOME}/Xray-script.sh --fallback
+    bash ${HOME}/xray-script.sh --fallback
     ```
 
 * Quick start (UI)
 
   ```sh
-  wget --no-check-certificate -O ${HOME}/Xray-script.sh https://raw.githubusercontent.com/zxcvos/Xray-script/main/install.sh && bash ${HOME}/Xray-script.sh
+  wget --no-check-certificate -O ${HOME}/xray-script.sh https://raw.githubusercontent.com/zxcvos/xray-script/main/install.sh && bash ${HOME}/xray-script.sh
   ```
 
 ## Script UI
@@ -125,7 +125,7 @@ In SNI configuration, CDN share links use H2 as default ALPN. If you need H3, mo
   / . \  | |  | |    | |       | |    | |     
  /_/ \_\ |_|  |_|    |_|       |_|    |_|     
 
-Copyright (C) zxcvos | https://github.com/zxcvos/Xray-script
+Copyright (C) zxcvos | https://github.com/zxcvos/xray-script
 
 -------------------------------------------
 Xray       : v25.7.26
@@ -133,7 +133,7 @@ CONFIG     : VLESS-Vision-REALITY
 WARP Proxy : Running
 -------------------------------------------
 
---------------- Xray-script ---------------
+--------------- xray-script ---------------
  Version      : v2025-07-25
  Description  : Xray Management Script
 ----------------- Install -----------------
@@ -204,7 +204,7 @@ The downside is long compilation time.
 
 ## Install Paths
 
-**Xray-script:** `/usr/local/xray-script`
+**xray-script:** `/usr/local/xray-script`
 
 **Nginx:** `/usr/local/nginx`
 
@@ -280,7 +280,7 @@ When using SNI configuration, the script may install the following dependencies:
 
 [V2Ray 路由规则文件加强版][v2ray-rules-dat]
 
-[kirin10000/Xray-script][kirin10000/Xray-script]
+[kirin10000/xray-script][kirin10000/xray-script]
 
 [Cloudreve][cloudreve]
 
@@ -294,5 +294,5 @@ When using SNI configuration, the script may install the following dependencies:
 [haoel]: https://github.com/haoel/haoel.github.io#943-docker-%E4%BB%A3%E7%90%86 (使用 Docker 快速部署 Cloudflare WARP Proxy)
 [e7h4n]: https://github.com/e7h4n/cloudflare-warp (cloudflare-warp 镜像)
 [v2ray-rules-dat]: https://github.com/Loyalsoldier/v2ray-rules-dat (V2Ray 路由规则文件加强版)
-[kirin10000/Xray-script]: https://github.com/kirin10000/Xray-script (kirin10000/Xray-script)
+[kirin10000/xray-script]: https://github.com/kirin10000/xray-script (kirin10000/xray-script)
 [cloudreve]: https://github.com/cloudreve/cloudreve (cloudreve)

@@ -2,8 +2,8 @@
 #
 # Copyright (C) 2025 zxcvos
 #
-# Xray-script:
-#   https://github.com/zxcvos/Xray-script
+# xray-script:
+#   https://github.com/zxcvos/xray-script
 #
 # docker-install:
 #   https://github.com/docker/docker-install

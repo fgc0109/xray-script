@@ -2,8 +2,8 @@
 #
 # Copyright (C) 2025 zxcvos
 #
-# Xray-script:
-#   https://github.com/zxcvos/Xray-script
+# xray-script:
+#   https://github.com/zxcvos/xray-script
 # =============================================================================
 # 注释: 通过 Qwen3-Coder 生成。
 # 脚本名称: read.sh
