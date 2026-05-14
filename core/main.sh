@@ -66,10 +66,14 @@ declare SCRIPT_CONFIG='' # 存储脚本配置内容
 
 function load_i18n() {
     # 从配置文件中读取语言设置
-    local lang="$(jq -r '.language' "${SCRIPT_CONFIG_PATH}")"
+    local lang="$(jq -r '.language' "${SCRIPT_CONFIG_PATH}" 2>/dev/null)"
     # 如果语言设置为 "auto"，则使用系统环境变量 LANG 的第一部分作为语言代码
     if [[ "$lang" == "auto" ]]; then
         lang=$(echo "$LANG" | cut -d'_' -f1)
+    fi
+    # 处理语言为空或读取失败的情况
+    if [[ -z "$lang" || "$lang" == "null" ]]; then
+        lang="zh"
     fi
     # 构造 i18n 文件的完整路径
     local i18n_file="${I18N_DIR}/${lang}.json"
@@ -411,7 +415,13 @@ function processes_language() {
     *) LANG_PARAM="zh" ;; # 默认中文
     esac
     # 更新配置文件中的语言设置
-    SCRIPT_CONFIG="$(jq --arg language "${LANG_PARAM}" '.language = $language' "${SCRIPT_CONFIG_PATH}")"
+    if [[ ! -f "${SCRIPT_CONFIG_PATH}" ]]; then
+        mkdir -p "${SCRIPT_CONFIG_DIR}"
+        SCRIPT_CONFIG="{}"
+    else
+        SCRIPT_CONFIG="$(cat "${SCRIPT_CONFIG_PATH}" 2>/dev/null || echo '{}')"
+    fi
+    SCRIPT_CONFIG="$(echo "${SCRIPT_CONFIG}" | jq --arg language "${LANG_PARAM}" '.language = $language')"
     echo "${SCRIPT_CONFIG}" >"${SCRIPT_CONFIG_PATH}" && sleep 2
     bash "${CUR_DIR}/${CUR_FILE}.sh" && exit 0
 }

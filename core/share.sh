@@ -83,11 +83,16 @@ declare SHARE_LINK_COMPONENT_EXTRA   # 额外参数 (如 downloadSettings) 部�
 # =============================================================================
 function load_i18n() {
     # 从脚本配置文件中读取语言设置
-    local lang="$(jq -r '.language' "${SCRIPT_CONFIG_PATH}")"
+    local lang="$(jq -r '.language' "${SCRIPT_CONFIG_PATH}" 2>/dev/null)"
 
     # 如果语言设置为 "auto"，则使用系统环境变量 LANG 的第一部分作为语言代码
     if [[ "$lang" == "auto" ]]; then
         lang=$(echo "$LANG" | cut -d'_' -f1)
+    fi
+    
+    # 处理语言为空或读取失败的情况
+    if [[ -z "$lang" || "$lang" == "null" ]]; then
+        lang="zh"
     fi
 
     # 构造 i18n 文件的完整路径

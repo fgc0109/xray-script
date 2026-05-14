@@ -71,7 +71,7 @@ readonly ACME_PATH="${HOME}/.acme.sh/acme.sh"                  # ACME.sh 脚本�
 
 # --- 全局变量声明 ---
 # 声明用于存储配置数据和国际化数据的全局变量
-declare SCRIPT_CONFIG="$(jq '.' "${SCRIPT_CONFIG_PATH}")" # 存储从 config.json 读取的脚本配置
+declare SCRIPT_CONFIG="$(jq '.' "${SCRIPT_CONFIG_PATH}" 2>/dev/null || echo '{}')" # 存储从 config.json 读取的脚本配置
 declare XRAY_CONFIG=""                                    # 存储 Xray 配置 (通常在运行时加载)
 declare LANG_PARAM=''                                     # (未在脚本中实际使用，可能是预留)
 declare I18N_DATA=''                                      # 存储从 i18n JSON 文件中读取的全部数据
@@ -91,10 +91,14 @@ declare -A CONFIG_DATA # 用于临时存储用户输入的配置数据
 # =============================================================================
 function load_i18n() {
     # 从配置文件中读取语言设置
-    local lang="$(jq -r '.language' "${SCRIPT_CONFIG_PATH}")"
+    local lang="$(jq -r '.language' "${SCRIPT_CONFIG_PATH}" 2>/dev/null)"
     # 如果语言设置为 "auto"，则使用系统环境变量 LANG 的第一部分作为语言代码
     if [[ "$lang" == "auto" ]]; then
         lang=$(echo "$LANG" | cut -d'_' -f1)
+    fi
+    # 处理语言为空或读取失败的情况
+    if [[ -z "$lang" || "$lang" == "null" ]]; then
+        lang="zh"
     fi
     # 构造 i18n 文件的完整路径
     local i18n_file="${I18N_DIR}/${lang}.json"
