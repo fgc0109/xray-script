@@ -328,7 +328,10 @@ function reset_json_fields() {
     shift 2
     local keep_fields=("$@") # 获取需要保留的字段名数组
     # 将保留字段名数组转换为 jq 可用的 JSON 数组
-    local jq_keep=$(printf '%s\n' "${keep_fields[@]}" | jq -R . | jq -s .)
+    local jq_keep="[]"
+    if [[ ${#keep_fields[@]} -gt 0 ]]; then
+        jq_keep=$(printf '%s\n' "${keep_fields[@]}" | jq -R . | jq -s .)
+    fi
     # 使用 jq 脚本进行重置操作
     raw_json=$(echo "${raw_json}" | jq --arg key "${target_key}" --argjson keep "$jq_keep" '
         # 定义递归函数 clear_recursive，用于清空值
@@ -341,7 +344,7 @@ function reset_json_fields() {
             end;
         # 定义函数 exec_clear，用于判断字段是否需要保留
         def exec_clear:
-            if .key | IN($keep[]) then .
+            if ($keep | index(.key)) then .
             else .value |= clear_recursive
             end;
         # 根据是否指定了目标键来决定重置范围
