@@ -526,7 +526,7 @@ function main() {
     if [[ ! -d "${SCRIPT_CONFIG_DIR}" ]]; then
         mkdir -p "${SCRIPT_CONFIG_DIR}"
     fi
-    if [[ ! -f "${SCRIPT_CONFIG_PATH}" ]]; then
+    if [[ ! -f "${SCRIPT_CONFIG_PATH}" ]] || ! jq -e . "${SCRIPT_CONFIG_PATH}" >/dev/null 2>&1; then
         wget -O "${SCRIPT_CONFIG_PATH}" https://raw.githubusercontent.com/fgc0109/xray-script/main/config.json
     fi
 
