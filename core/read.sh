@@ -199,7 +199,7 @@ function main() {
     read_input "$type" "$prompt"
 
     # 从标准输入读取一行用户输入
-    read -r input
+    read -r -e input
 
     # 输出用户输入的内容
     echo "$input"
