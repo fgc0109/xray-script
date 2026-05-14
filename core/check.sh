@@ -26,6 +26,9 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/snap/bin
 export PATH
 
+# 修复部分终端下退格键无法使用的问题
+stty erase '^H' 2>/dev/null
+
 # 定义颜色代码，用于在终端输出带颜色的信息
 readonly GREEN='\033[32m'  # 绿色
 readonly YELLOW='\033[33m' # 黄色

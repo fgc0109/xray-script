@@ -34,6 +34,9 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/snap/bin
 export PATH
 
+# 修复部分终端下退格键无法使用的问题
+stty erase '^H' 2>/dev/null
+
 # 注册一个退出时执行的清理函数 egress
 trap egress EXIT
 
