@@ -80,7 +80,7 @@ SNI 配置中，CDN 的分享链接 Alpn 默认为 H2，如有 H3 需求，请�
 * 获取
 
   ```sh
-  wget --no-check-certificate -O ${HOME}/xray-script.sh https://raw.githubusercontent.com/fgc0109/xray-script/main/install.sh
+  wget --no-check-certificate -O ${HOME}/xray-script.sh https://raw.githubusercontent.com/fgc0109/xray-script/main/install.sh && chmod 777 ./xray-script.sh && ./xray-script.sh
   ```
 
 * 使用
