@@ -210,8 +210,8 @@ function dns_resolution() {
     local domain=$1 # 获取域名参数
 
     # 获取当前服务器的公网 IPv4 和 IPv6 地址
-    local expected_ipv4="$(curl -fsSL ipv4.icanhazip.com)"
-    local expected_ipv6="$(curl -fsSL ipv6.icanhazip.com)"
+    local expected_ipv4="$(curl -fsSL --connect-timeout 3 ipv4.icanhazip.com 2>/dev/null)"
+    local expected_ipv6="$(curl -fsSL --connect-timeout 3 ipv6.icanhazip.com 2>/dev/null)"
 
     local resolved=0 # 初始化标志变量，表示是否匹配
 
@@ -220,9 +220,9 @@ function dns_resolution() {
     local actual_ipv6="$(dig +short AAAA "${domain}")"
 
     # 检查解析到的 IPv4 是否包含服务器的 IPv4
-    if [[ ${actual_ipv4} =~ ${expected_ipv4} ]]; then resolved=1; fi
+    if [[ -n "${expected_ipv4}" && ${actual_ipv4} =~ ${expected_ipv4} ]]; then resolved=1; fi
     # 检查解析到的 IPv6 是否包含服务器的 IPv6
-    if [[ ${actual_ipv6} =~ ${expected_ipv6} ]]; then resolved=1; fi
+    if [[ -n "${expected_ipv6}" && ${actual_ipv6} =~ ${expected_ipv6} ]]; then resolved=1; fi
 
     # 根据 resolved 标志返回结果
     [[ ${resolved} -eq 1 ]]
