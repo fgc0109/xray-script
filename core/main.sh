@@ -415,11 +415,10 @@ function processes_language() {
     *) LANG_PARAM="zh" ;; # 默认中文
     esac
     # 更新配置文件中的语言设置
-    if [[ ! -f "${SCRIPT_CONFIG_PATH}" ]]; then
-        mkdir -p "${SCRIPT_CONFIG_DIR}"
+    mkdir -p "${SCRIPT_CONFIG_DIR}"
+    SCRIPT_CONFIG="$(jq '.' "${SCRIPT_CONFIG_PATH}" 2>/dev/null || echo '{}')"
+    if [[ -z "${SCRIPT_CONFIG}" || "${SCRIPT_CONFIG}" == "null" ]]; then
         SCRIPT_CONFIG="{}"
-    else
-        SCRIPT_CONFIG="$(cat "${SCRIPT_CONFIG_PATH}" 2>/dev/null || echo '{}')"
     fi
     SCRIPT_CONFIG="$(echo "${SCRIPT_CONFIG}" | jq --arg language "${LANG_PARAM}" '.language = $language')"
     echo "${SCRIPT_CONFIG}" >"${SCRIPT_CONFIG_PATH}" && sleep 2
