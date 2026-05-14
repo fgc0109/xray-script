@@ -461,8 +461,10 @@ function check_xray_script_version() {
             # 更新当前脚本文件
             cp -f "${PROJECT_ROOT}/install.sh" "${CUR_DIR}/${CUR_FILE}"
             # 更新版本号
-            local new_config="$(jq --arg version "${remote_version}" '.version = $version' "${SCRIPT_CONFIG_PATH}")"
+        local new_config="$(jq --arg version "${remote_version}" '.version = $version' "${SCRIPT_CONFIG_PATH}" 2>/dev/null)"
+        if [[ -n "${new_config}" ]]; then
             echo "${new_config}" >"${SCRIPT_CONFIG_PATH}" && sleep 1
+        fi
             # 打印更新完成信息
             echo -e "${GREEN}[${I18N_DATA['tip']}]${NC} ${I18N_DATA['completed']}"
             # 重启脚本
@@ -505,7 +507,7 @@ function main() {
     check_os
 
     local is_first_run=0
-    if [[ ! -f "${SCRIPT_CONFIG_PATH}" ]]; then
+    if [[ ! -s "${SCRIPT_CONFIG_PATH}" ]] || ! jq -e . "${SCRIPT_CONFIG_PATH}" >/dev/null 2>&1; then
         is_first_run=1
     fi
 
@@ -526,8 +528,11 @@ function main() {
     if [[ ! -d "${SCRIPT_CONFIG_DIR}" ]]; then
         mkdir -p "${SCRIPT_CONFIG_DIR}"
     fi
-    if [[ ! -f "${SCRIPT_CONFIG_PATH}" ]] || ! jq -e . "${SCRIPT_CONFIG_PATH}" >/dev/null 2>&1; then
-        wget -O "${SCRIPT_CONFIG_PATH}" https://raw.githubusercontent.com/fgc0109/xray-script/main/config.json
+    if [[ ! -s "${SCRIPT_CONFIG_PATH}" ]] || ! jq -e . "${SCRIPT_CONFIG_PATH}" >/dev/null 2>&1; then
+        curl -fsSL -o "${SCRIPT_CONFIG_PATH}" "https://raw.githubusercontent.com/fgc0109/xray-script/main/config.json"
+        if [[ ! -s "${SCRIPT_CONFIG_PATH}" ]] || ! jq -e . "${SCRIPT_CONFIG_PATH}" >/dev/null 2>&1; then
+            echo '{"version":"","path":"","language":"","xray":{"version":"","warp":0,"rules":{"reset":"","bt":0,"cn":0,"ad":0},"tag":"","port":443,"uuid":"","fallback":"","trojan":"","kcp":"","path":"","privateKey":"","publicKey":"","hash32":"","target":"","serverNames":[""],"shortIds":[""]},"nginx":{"version":"","ca":"","ca_server":"zerossl","domain":"","cdn":"","web":"","custom_sites":[]},"target":{},"rules":[]}' > "${SCRIPT_CONFIG_PATH}"
+        fi
     fi
 
     # 处理命令行参数中的快速安装和自定义目录选项
