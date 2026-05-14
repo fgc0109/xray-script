@@ -825,10 +825,79 @@ function handler_update_ocsp_config() {
 #   $1: CONFIG_TAG - 配置标签 (例如 Vision, XHTTP, SNI 等)，默认从 CONFIG_DATA 获取
 # 返回值: 无 (直接修改 SCRIPT_CONFIG 全局变量和 SCRIPT_CONFIG_PATH 文件)
 # =============================================================================
+function safe_jq_update() {
+    local description="$1"  # 当前操作描述
+    local jq_cmd="$2"       # 传入的 jq 表达式
+    
+    while true; do
+        # 捕获当前全局变量 SCRIPT_CONFIG 的状态
+        local input_json="${SCRIPT_CONFIG}"
+        
+        # 运行 jq 并同时捕获标准输出和标准错误
+        local jq_error_msg
+        local output_json
+        
+        # 使用临时文件捕获错误，防止 stderr 漏掉
+        local tmp_err=$(mktemp)
+        output_json=$(echo "${input_json}" | eval "jq ${jq_cmd}" 2>"$tmp_err")
+        local exit_code=$?
+        jq_error_msg=$(cat "$tmp_err")
+        rm -f "$tmp_err"
+
+        # 如果 jq 运行成功，且输出不为空
+        if [[ $exit_code -eq 0 && -n "$output_json" ]]; then
+            SCRIPT_CONFIG="${output_json}"
+            return 0
+        fi
+
+        # 进入报错处理逻辑 —— 绝不退出，展示现场
+        echo -e "\n${RED}====================================================${NC}"
+        echo -e "${RED}[JQ 报错拦截] 发生在: ${description}${NC}"
+        echo -e "${YELLOW}[错误原因]:${NC}\n${jq_error_msg:-"未知错误（可能输入是空字符串）"}"
+        echo -e "${YELLOW}[当时的输入数据 (SCRIPT_CONFIG)]:${NC}"
+        echo "${input_json:-"[空字符串或未定义]"}"
+        echo -e "${YELLOW}[尝试执行的 JQ 命令]:${NC} jq ${jq_cmd}"
+        echo -e "${RED}====================================================${NC}"
+
+        # 交互式确认：是否重试
+        while true; do
+            read -r -p "是否尝试修正后重试该步骤？[Y/n] (输入 n 则跳过此步继续执行): " x_choice
+            case "${x_choice,,}" in
+                y|"" ) 
+                    echo -e "${GREEN}正在尝试重新解析...${NC}"
+                    break # 跳出内层循环，触发外层 while 继续重试
+                    ;;
+                n ) 
+                    echo -e "${YELLOW}已选择跳过此错误步骤，保留原配置继续...${NC}"
+                    return 1 # 放弃更新，但函数不退出，脚本继续往下走
+                    ;;
+                * ) 
+                    echo "傻逼输入，请输入 Y 或者 N" 
+                    ;;
+            esac
+        done
+    done
+}
+
+# =================================================================
+# 修正后的主配置更新函数
+# =================================================================
 function handler_script_config() {
-    # 打印绿色的配置更新提示
-    echo -e "${GREEN}[$(echo "$I18N_DATA" | jq -r '.title.config')]${NC} $(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.script.config_update")" >&2
-    # 重置脚本配置 (默认重置 xray 部分)
+    # 颜色定义（防止原本脚本没定义导致报错）
+    local GREEN='\033[0;32m'
+    local RED='\033[0;31m'
+    local YELLOW='\033[0;33m'
+    local NC='\033[0m'
+
+    # 1. 拦截可能为空的国际化和文件名参数
+    local title_config=$(echo "$I18N_DATA" | jq -r '.title.config' 2>/dev/null || echo "配置")
+    local update_msg="正在更新配置"
+    if [[ -n "${CUR_FILE}" ]]; then
+        update_msg=$(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.script.config_update" 2>/dev/null || echo "正在更新 Xray 配置")
+    fi
+    echo -e "${GREEN}[${title_config}]${NC} ${update_msg}" >&2
+
+    # 重置脚本配置 
     handler_reset_script_config
     # 从 CONFIG_DATA 或生成器获取配置值
     # 获取配置标签
@@ -874,57 +943,80 @@ function handler_script_config() {
     # 更新脚本配置中的 block ad 状态
     SCRIPT_CONFIG="$(echo "${SCRIPT_CONFIG}" | jq --arg ad "${XRAY_RULES_AD,,}" ' if $ad != "n" then .xray.rules.ad = 1 else .xray.rules.ad = 0 end ')"
     # 根据配置标签更新特定字段
+
+    # 2. 检查全局配置变量初始状态，如果本来就是空的，先给个最基础的 JSON 大括号
+    if [[ -z "${SCRIPT_CONFIG}" || "${SCRIPT_CONFIG}" == "null" ]]; then
+        SCRIPT_CONFIG="{}"
+    fi
+
+    # 3. 使用安全函数重构所有 jq 更新操作
+    safe_jq_update "更新规则状态" '--arg reset "'"${XRAY_RULES_STATUS,,}"'" "if \$reset != \"n\" then .xray.rules.reset = 1 else .xray.rules.reset = 0 end"'
+    safe_jq_update "更新 block-bt 状态" '--arg bt "'"${XRAY_RULES_BT,,}"'" "if \$bt != \"n\" then .xray.rules.bt = 1 else .xray.rules.bt = 0 end"'
+    safe_jq_update "更新 block-cn 状态" '--arg cn "'"${XRAY_RULES_CN,,}"'" "if \$cn != \"n\" then .xray.rules.cn = 1 else .xray.rules.cn = 0 end"'
+    safe_jq_update "更新 block-ad 状态" '--arg ad "'"${XRAY_RULES_AD,,}"'" "if \$ad != \"n\" then .xray.rules.ad = 1 else .xray.rules.ad = 0 end"'
+
+    # 根据配置标签更新特定字段 (第一部分)
     case "${CONFIG_TAG,,}" in
     trojan)
-        # 更新 Trojan 密码
-        SCRIPT_CONFIG="$(echo "${SCRIPT_CONFIG}" | jq --arg password "${TROJAN_PASSWORD}" '.xray.trojan = $password')"
+        safe_jq_update "更新 Trojan 密码" '--arg password "'"${TROJAN_PASSWORD}"'" ".xray.trojan = \$password"'
         ;;
     mkcp | vision | xhttp | fallback | sni)
-        # 更新 UUID
-        SCRIPT_CONFIG="$(echo "${SCRIPT_CONFIG}" | jq --arg uuid "${XRAY_UUID}" '.xray.uuid = $uuid')"
+        safe_jq_update "更新 Xray UUID" '--arg uuid "'"${XRAY_UUID}"'" ".xray.uuid = \$uuid"'
         ;;
     esac
+
     # 根据配置标签更新特定字段 (第二部分)
     case "${CONFIG_TAG,,}" in
     fallback)
-        # 更新 Fallback UUID
-        SCRIPT_CONFIG="$(echo "${SCRIPT_CONFIG}" | jq --arg uuid "${FALLBACK_UUID}" '.xray.fallback = $uuid')"
+        safe_jq_update "更新 Fallback UUID" '--arg uuid "'"${FALLBACK_UUID}"'" ".xray.fallback = \$uuid"'
         ;;
     mkcp)
-        # 为 mKCP 生成随机端口并更新 Seed
         XRAY_PORT="$(exec_generate '--port')"
-        SCRIPT_CONFIG="$(echo "${SCRIPT_CONFIG}" | jq --arg seed "${KCP_SEED}" '.xray.kcp = $seed')"
+        safe_jq_update "更新 mKCP Seed" '--arg seed "'"${KCP_SEED}"'" ".xray.kcp = \$seed"'
         ;;
     sni)
-        # 更新 Fallback UUID
-        SCRIPT_CONFIG="$(echo "${SCRIPT_CONFIG}" | jq --arg uuid "${FALLBACK_UUID}" '.xray.fallback = $uuid')"
-        # 为 SNI 更新 CA 邮箱、域名和 CDN
-        [[ -n "${CA_EMAIL}" ]] && SCRIPT_CONFIG="$(echo "${SCRIPT_CONFIG}" | jq --arg ca "${CA_EMAIL}" '.nginx.ca = $ca')"
-        SCRIPT_CONFIG="$(echo "${SCRIPT_CONFIG}" | jq --arg domain "${TARGET_DOMAIN}" '.nginx.domain = $domain')"
-        SCRIPT_CONFIG="$(echo "${SCRIPT_CONFIG}" | jq --arg cdn "${CDN_DOMAIN}" '.nginx.cdn = $cdn')"
+        safe_jq_update "更新 Fallback UUID (SNI)" '--arg uuid "'"${FALLBACK_UUID}"'" ".xray.fallback = \$uuid"'
+        if [[ -n "${CA_EMAIL}" ]]; then
+            safe_jq_update "更新 Nginx CA 邮箱" '--arg ca "'"${CA_EMAIL}"'" ".nginx.ca = \$ca"'
+        fi
+        safe_jq_update "更新 Nginx 目标域名" '--arg domain "'"${TARGET_DOMAIN}"'" ".nginx.domain = \$domain"'
+        safe_jq_update "更新 Nginx CDN 域名" '--arg cdn "'"${CDN_DOMAIN}"'" ".nginx.cdn = \$cdn"'
         ;;
     esac
+
     # 根据配置标签更新特定字段 (第三部分)
     case "${CONFIG_TAG,,}" in
     xhttp | trojan | fallback | sni)
-        # 更新路径
-        SCRIPT_CONFIG="$(echo "${SCRIPT_CONFIG}" | jq --arg path "${XHTTP_PATH}" '.xray.path = $path')"
+        safe_jq_update "更新 XHTTP/Trojan 路径" '--arg path "'"${XHTTP_PATH}"'" ".xray.path = \$path"'
         ;;
     esac
+
     # 根据配置标签更新特定字段 (第四部分)
     case "${CONFIG_TAG,,}" in
     vision | xhttp | trojan | fallback | sni)
-        # 更新目标域名、服务器名称和 Short IDs
-        SCRIPT_CONFIG="$(echo "${SCRIPT_CONFIG}" | jq --arg target "${TARGET_DOMAIN}" '.xray.target = $target')"
-        SCRIPT_CONFIG="$(echo "${SCRIPT_CONFIG}" | jq --argjson serverNames "${SERVER_NAMES}" '.xray.serverNames = $serverNames')"
-        SCRIPT_CONFIG="$(echo "${SCRIPT_CONFIG}" | jq --argjson shortIds "${SHORT_IDS}" '.xray.shortIds = $shortIds')"
+        safe_jq_update "更新目标域名" '--arg target "'"${TARGET_DOMAIN}"'" ".xray.target = \$target"'
+        safe_jq_update "更新服务器名称列表" '--argjson serverNames '"'${SERVER_NAMES}'"' ".xray.serverNames = \$serverNames"'
+        safe_jq_update "更新 Short IDs" '--argjson shortIds '"'${SHORT_IDS}'"' ".xray.shortIds = \$shortIds"'
         ;;
     esac
+
     # 更新配置标签和端口
-    SCRIPT_CONFIG="$(echo "${SCRIPT_CONFIG}" | jq --arg tag "${CONFIG_TAG}" '.xray.tag = $tag')"
-    SCRIPT_CONFIG="$(echo "${SCRIPT_CONFIG}" | jq --argjson port "${XRAY_PORT}" '.xray.port = $port')"
+    safe_jq_update "更新最后的配置标签" '--arg tag "'"${CONFIG_TAG}"'" ".xray.tag = \$tag"'
+    safe_jq_update "更新最后的端口" '--argjson port '"${XRAY_PORT:-443}"' ".xray.port = \$port"'
+
+    # 4. 最终写入文件阶段防御
+    if [[ -z "${SCRIPT_CONFIG_PATH}" ]]; then
+        echo -e "${RED}[错误] 脚本致命 Bug: 存储路径 SCRIPT_CONFIG_PATH 为空！无法写入！${NC}"
+        read -p "请输入你想把配置紧急保存到哪里 (默认 /tmp/xray_backup.json): " fallback_path
+        SCRIPT_CONFIG_PATH="${fallback_path:-/tmp/xray_backup.json}"
+    fi
+
+    # 确保父级目录存在，避免出现 "No such file or directory"
+    mkdir -p "$(dirname "${SCRIPT_CONFIG_PATH}")"
+
     # 将更新后的脚本配置写入文件
-    echo "${SCRIPT_CONFIG}" >"${SCRIPT_CONFIG_PATH}" && sleep 2
+    echo "${SCRIPT_CONFIG}" >"${SCRIPT_CONFIG_PATH}" && echo -e "${GREEN}配置已成功安全写入：${SCRIPT_CONFIG_PATH}${NC}"
+    sleep 2
 }
 
 # =============================================================================
