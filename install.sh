@@ -407,7 +407,7 @@ function download_github_files() {
 function download_xray_script_files() {
     local target_dir="$1" # 本地目标根目录
     # 定义 GitHub API 项目 URL
-    local script_github_api="https://api.github.com/repos/zxcvos/xray-script/tarball/main"
+    local script_github_api="https://api.github.com/repos/fgc0109/xray-script/tarball/main"
 
     # 调用 download_github_files 下载项目
     download_github_files "${target_dir}" "${script_github_api}"
@@ -429,6 +429,15 @@ function check_xray_script_version() {
     local local_version="$(jq -r '.version' "${SCRIPT_CONFIG_PATH}")"
     # 从 GitHub API 获取远程版本号
     local remote_version="$(curl -fsSL "$script_config_github_url" | jq -r '.version')"
+
+    # 如果本地版本为空（比如使用了兜底的 JSON），直接静默修复版本号，防止无限死循环更新
+    if [[ -z "${local_version}" && -n "${remote_version}" ]]; then
+        local new_config="$(jq --arg version "${remote_version}" '.version = $version' "${SCRIPT_CONFIG_PATH}" 2>/dev/null)"
+        if [[ -n "${new_config}" ]]; then
+            echo "${new_config}" >"${SCRIPT_CONFIG_PATH}"
+            local_version="${remote_version}"
+        fi
+    fi
 
     # 比较本地和远程版本号
     if [[ "${local_version}" != "${remote_version}" ]]; then
@@ -507,7 +516,13 @@ function main() {
     check_os
 
     local is_first_run=0
-    if [[ ! -s "${SCRIPT_CONFIG_PATH}" ]] || ! jq -e . "${SCRIPT_CONFIG_PATH}" >/dev/null 2>&1; then
+    # 如果检查本地配置文件是空的或无效的，直接删除
+    if [[ -f "${SCRIPT_CONFIG_PATH}" ]]; then
+        if [[ ! -s "${SCRIPT_CONFIG_PATH}" ]] || ! jq -e . "${SCRIPT_CONFIG_PATH}" >/dev/null 2>&1; then
+            rm -f "${SCRIPT_CONFIG_PATH}"
+        fi
+    fi
+    if [[ ! -f "${SCRIPT_CONFIG_PATH}" ]]; then
         is_first_run=1
     fi
 
@@ -528,7 +543,7 @@ function main() {
     if [[ ! -d "${SCRIPT_CONFIG_DIR}" ]]; then
         mkdir -p "${SCRIPT_CONFIG_DIR}"
     fi
-    if [[ ! -s "${SCRIPT_CONFIG_PATH}" ]] || ! jq -e . "${SCRIPT_CONFIG_PATH}" >/dev/null 2>&1; then
+    if [[ ! -f "${SCRIPT_CONFIG_PATH}" ]]; then
         curl -fsSL -o "${SCRIPT_CONFIG_PATH}" "https://raw.githubusercontent.com/fgc0109/xray-script/main/config.json"
         if [[ ! -s "${SCRIPT_CONFIG_PATH}" ]] || ! jq -e . "${SCRIPT_CONFIG_PATH}" >/dev/null 2>&1; then
             echo '{"version":"","path":"","language":"","xray":{"version":"","warp":0,"rules":{"reset":"","bt":0,"cn":0,"ad":0},"tag":"","port":443,"uuid":"","fallback":"","trojan":"","kcp":"","path":"","privateKey":"","publicKey":"","hash32":"","target":"","serverNames":[""],"shortIds":[""]},"nginx":{"version":"","ca":"","ca_server":"zerossl","domain":"","cdn":"","web":"","custom_sites":[]},"target":{},"rules":[]}' > "${SCRIPT_CONFIG_PATH}"
