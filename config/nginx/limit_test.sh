@@ -4,6 +4,13 @@
 #
 # Copyright (C) 2023 zxcvos
 
+# --- 环境与常量设置 ---
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/snap/bin
+export PATH
+
+# 修复部分终端下退格键无法使用的问题
+stty erase '^H' 2>/dev/null
+
 # color
 readonly RED='\033[1;31;31m'
 readonly GREEN='\033[1;31;32m'

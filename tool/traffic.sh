@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+# --- 环境与常量设置 ---
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/snap/bin
+export PATH
+
+# 修复部分终端下退格键无法使用的问题
+stty erase '^H' 2>/dev/null
+
 _APISERVER=127.0.0.1:32768
 _XRAY=/usr/local/bin/xray
 
