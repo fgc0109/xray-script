@@ -432,6 +432,9 @@ function check_xray_script_version() {
 
     # 比较本地和远程版本号
     if [[ "${local_version}" != "${remote_version}" ]]; then
+        # 打印调试信息：本地和远程的文件路径及对应版本号
+        echo -e "${YELLOW}[Debug] Local file:  ${SCRIPT_CONFIG_PATH} (Version: ${local_version})${NC}"
+        echo -e "${YELLOW}[Debug] Remote file: ${script_config_github_url} (Version: ${remote_version})${NC}"
         # 如果不一致，则提示用户有新版本
         echo -e "${GREEN}[${I18N_DATA['tip']}]${NC} ${I18N_DATA['new']}"
         # 询问用户是否更新
