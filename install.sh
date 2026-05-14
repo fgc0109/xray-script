@@ -422,7 +422,7 @@ function download_xray_script_files() {
 # =============================================================================
 function check_xray_script_version() {
     # 定义 GitHub API URL 和本地版本文件路径
-    local script_config_github_url="https://raw.githubusercontent.com/zxcvos/xray-script/main/config.json"
+    local script_config_github_url="https://raw.githubusercontent.com/fgc0109/xray-script/main/config.json"
     local is_update='n' # 初始化更新标志为 'n' (不更新)
 
     # 读取本地版本号
@@ -524,7 +524,7 @@ function main() {
         mkdir -p "${SCRIPT_CONFIG_DIR}"
     fi
     if [[ ! -f "${SCRIPT_CONFIG_PATH}" ]]; then
-        wget -O "${SCRIPT_CONFIG_PATH}" https://raw.githubusercontent.com/zxcvos/xray-script/main/config.json
+        wget -O "${SCRIPT_CONFIG_PATH}" https://raw.githubusercontent.com/fgc0109/xray-script/main/config.json
     fi
 
     # 处理命令行参数中的快速安装和自定义目录选项
