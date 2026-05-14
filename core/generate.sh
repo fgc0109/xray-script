@@ -52,8 +52,11 @@ function generate_random() {
     local custom_min=${1} # 获取第一个参数作为自定义最小值
     local custom_max=${2} # 获取第二个参数作为自定义最大值
 
-    # 使用 /dev/urandom 生成一个无符号32位随机整数
-    local random=$(od -An -N4 -tu4 </dev/urandom)
+    # 使用 /dev/urandom 生成一个无符号32位随机整数，并去除空格防止 jq 报错
+    local random=$(od -An -N4 -tu4 </dev/urandom 2>/dev/null | tr -d ' \n')
+    if [[ -z "$random" ]]; then
+        random=$((RANDOM * RANDOM))
+    fi
 
     # 检查自定义的最小值和最大值是否为有效正整数，并且最小值小于最大值
     if [[ ${custom_min} =~ ^[0-9]+$ && ${custom_max} =~ ^[0-9]+$ ]] && ((custom_min < custom_max)); then
@@ -232,7 +235,13 @@ function generate_short_id() {
 
     # 如果长度为 0，则输出空字符串
     # 否则，使用 openssl 生成指定长度的十六进制随机字符串
-    [[ ${length} -eq 0 ]] && echo "" || echo "$(openssl rand -hex ${length})"
+    if [[ ${length} -eq 0 ]]; then
+        echo ""
+    else
+        local res=$(openssl rand -hex ${length} 2>/dev/null)
+        [[ -z "$res" ]] && res=$(cat /dev/urandom | tr -dc '0-9a-f' | fold -w $((length * 2)) | head -n 1)
+        echo "$res"
+    fi
 }
 
 # =============================================================================

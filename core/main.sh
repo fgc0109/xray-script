@@ -140,11 +140,24 @@ function exec_menu() {
 
 function exec_handler() {
     # 执行处理器脚本，并传递所有参数
-    bash "${HANDLER_PATH}" "$@"
-    local exit_code=$?
-    if [[ ${exit_code} -ne 0 ]]; then
-        _error "$(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.handler_failed")"
-    fi
+    while true; do
+        bash "${HANDLER_PATH}" "$@"
+        local exit_code=$?
+        if [[ ${exit_code} -ne 0 ]]; then
+            echo -e "${RED}[错误] 操作执行失败 (退出码: ${exit_code})，执行参数: $@${NC}" >&2
+            read -rp "是否确认后重试一次？[Y/n] " retry_choice
+            case "${retry_choice,,}" in
+            n | no)
+                _error "$(echo "$I18N_DATA" | jq -r ".${CUR_FILE}.handler_failed")"
+                ;;
+            *)
+                echo -e "${YELLOW}正在重试...${NC}" >&2
+                ;;
+            esac
+        else
+            break
+        fi
+    done
 }
 
 function exec_read() {

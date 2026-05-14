@@ -857,10 +857,12 @@ function handler_script_config() {
     local TARGET_DOMAIN="${CONFIG_DATA['target']:-$(exec_generate '--target')}"
     # 生成服务器名称列表
     local SERVER_NAMES="$(exec_generate '--server-names' "${TARGET_DOMAIN}")"
+    [[ -z "${SERVER_NAMES}" ]] && SERVER_NAMES='[""]'
     # 获取 CDN 域名
     local CDN_DOMAIN="${CONFIG_DATA['cdn']}"
     # 获取或生成 Short IDs
     local SHORT_IDS="$(exec_generate '--short-ids' ${CONFIG_DATA['short_ids']:-'8 8'})"
+    [[ -z "${SHORT_IDS}" ]] && SHORT_IDS='[]'
     # 获取 CA 邮箱
     local CA_EMAIL="${CONFIG_DATA['email']}"
     # 更新脚本配置中的规则状态
@@ -1482,11 +1484,14 @@ function handler_install() {
     else
         # 否则从脚本配置中读取版本
         CONFIG_DATA['version']="$(echo "${SCRIPT_CONFIG}" | jq -r '.xray.version')"
+        if [[ -z "${CONFIG_DATA['version']}" || "${CONFIG_DATA['version']}" == "null" ]]; then
+            handler_xray_version 'release'
+        fi
     fi
     # 检查 Xray 命令是否存在，或是否强制安装
     if ! cmd_exists 'xray' || [[ "${force_install}" != n ]]; then
         # 调用 Xray-install 脚本进行安装
-        bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -u root --version "${CONFIG_DATA['version']}"
+        bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -u root --version "${CONFIG_DATA['version']}" || exit 1
     fi
 }
 
