@@ -622,7 +622,7 @@ function add_rule() {
     local rule_tag=$1     # 获取规则标签
     local domain_or_ip=$2 # 获取规则类型 (domain/ip)
     # 将逗号分隔的值转换为 JSON 数组
-    local value=$(echo "$3" | tr ',' '\n' | jq -R | jq -s)
+    local value=$(echo "$3" | tr ',' '\n' | jq -R . | jq -s .)
     local outboundTag=$4 # 获取出站标签
     local position=$5    # 获取插入位置参数
     local target_tag=$6  # 获取目标规则标签参数
