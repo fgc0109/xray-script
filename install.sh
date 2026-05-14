@@ -455,7 +455,8 @@ function check_xray_script_version() {
             # 更新当前脚本文件
             cp -f "${PROJECT_ROOT}/install.sh" "${CUR_DIR}/${CUR_FILE}"
             # 更新版本号
-            sed -i "s|${local_version}|${remote_version}|" "${SCRIPT_CONFIG_PATH}" && sleep 1
+            local new_config="$(jq --arg version "${remote_version}" '.version = $version' "${SCRIPT_CONFIG_PATH}")"
+            echo "${new_config}" >"${SCRIPT_CONFIG_PATH}" && sleep 1
             # 打印更新完成信息
             echo -e "${GREEN}[${I18N_DATA['tip']}]${NC} ${I18N_DATA['completed']}"
             # 重启脚本
